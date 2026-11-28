@@ -1,0 +1,6 @@
+# Copy this file to db.properties and edit. (Environment variables DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD override it.)
+db.host=localhost
+db.port=5432
+db.name=hardwarestore
+db.user=postgres
+db.password=your-postgres-password

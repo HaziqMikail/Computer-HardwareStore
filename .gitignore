@@ -2,3 +2,6 @@ build/
 dist/
 nbproject/private/
 *.class
+# Local database credentials and admin-uploaded images
+db.properties
+product-images/

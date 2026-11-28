@@ -1,94 +1,73 @@
-# 💻 Computer & Hardware Store (Java GUI Project)
+# 💻 CodeFusion - Computer & Hardware Store (Java Swing + PostgreSQL)
 
-This is a simple desktop application developed using **Java (NetBeans)** for a basic computer and hardware store system. The system simulates an e-commerce experience, allowing users to **log in**, **browse items**, **add/delete from cart**, **select payment methods**, and **generate receipts**.
+A desktop store application. Customers browse products, manage a cart, pay (**simulated - no real payment**) and get a
+receipt. Administrators manage inventory and view every order. Data is stored in PostgreSQL.
 
----
+## Features
+- **Accounts:** sign-up/login with validation, PBKDF2-hashed passwords, Customer and Admin roles.
+- **Catalogue:** products loaded from the database with images, categories, search, category filter and live stock.
+- **Cart:** quantity validation, stock checks, change quantity, remove.
+- **Payment (dummy):** Cash, Card, Online Banking. Each is a `PaymentMethod` class; add a new one by implementing the
+  interface and registering it in `PaymentRegistry`. Only the format of details is checked; nothing is charged.
+- **Receipts:** built from the saved order (order ID, date/time, payment method), can be saved to a file or printed.
+- **Inventory (admin):** add, edit, delete products, change price/stock, choose an image. Stock drops automatically
+  after each purchase.
+- **Orders:** customers see their own history; admins see all orders with total revenue.
+- **Error handling:** custom exceptions (`InvalidLoginException`, `OutOfStockException`, `InvalidQuantityException`,
+  ...) are shown as friendly dialogs. Database errors are caught in the data layer; connections are always closed.
 
-## 🛠️ Features
+## Database setup
+Using **pgAdmin 4** (installed together with PostgreSQL by the EnterpriseDB installer).
 
-### 🔐 Secure Login
-- Users must log in before accessing the store.
-- Basic username-password validation (no database, suitable for learning authentication flow).
+1. **Check the server is running.** Open pgAdmin and expand *Servers > PostgreSQL*. Enter the master password you chose
+   during installation when asked. If it connects (green icon), the server is running.
+   Note the **port** (right-click the server > *Properties > Connection*; default `5432`) and the **username**
+   (default `postgres`) with the password you set for it.
+2. **Create the database** (recommended, so you can see it before the app runs):
+   right-click *Databases > Create > Database...*, name it `hardwarestore`, owner `postgres`, click *Save*.
+   You can skip this step: the app will try to create it itself.
+3. **Tell the app how to connect.** In the project folder copy `db.properties.example` to `db.properties` and edit it:
+   ```
+   db.host=localhost
+   db.port=5432
+   db.name=hardwarestore
+   db.user=postgres
+   db.password=<the password you use to log in to pgAdmin's server>
+   ```
+   (Alternatively set the `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` environment variables.)
+4. **Run the app.** On first run it creates the tables (`users`, `products`, `orders`, `order_items`) and the
+   starting data (24 products, 20 in stock each, plus the admin account).
+5. **Check in pgAdmin:** right-click `hardwarestore` > *Refresh*, then *Schemas > public > Tables*. Right-click a
+   table > *View/Edit Data > All Rows* to see the rows.
 
-### 🛒 Shopping Functions
-- View a list of computer & hardware items (monitor, SSD, RAM, GPU, etc.).
-- Add items with quantity to the cart.
-- Remove unwanted items from the cart.
-- View cart details including item names, quantity, and price.
+**Default admin login:** username `admin`, password `Admin@123` - change it for anything beyond a demo.
 
-### 💳 Payment Options
-- Simulated checkout process.
-- Choose between available payment methods (e.g., Cash, Card, Online Banking).
-- No real payment integration — for simulation purposes only.
+If the app cannot connect it shows a message explaining why. See `note.md` for fixes, SQL snippets for pgAdmin's
+Query Tool, and how to open the admin page.
 
-### 🧾 Receipt Generation
-- After checkout, a basic receipt is shown with:
-  - List of purchased items
-  - Total price
-  - Chosen payment method
-  - Thank you message
+## How to run
+- **NetBeans:** open the project and press Run. Main class: `computerhardwarestore.ComputerHardwareStore`.
+  The PostgreSQL driver is in `lib/postgresql-42.7.4.jar` and is already on the classpath.
+- **Command line:**
+  ```
+  javac -encoding UTF-8 -cp lib/postgresql-42.7.4.jar -d out $(find src -name "*.java")
+  cp -r src/images out/images
+  java -cp "out:lib/postgresql-42.7.4.jar" computerhardwarestore.ComputerHardwareStore   (use ; instead of : on Windows)
+  ```
 
----
+## Architecture
+| Package | Role |
+|---|---|
+| `model` | Data classes: `User`, `Product`, `Cart`, `Order`, ... |
+| `view` | Swing screens only (`MainFrame`, `ShopPanel`, `CartPanel`, `CheckoutPanel`, `InventoryPanel`, ...) |
+| `controller` | Application rules (`AuthController`, `CartController`, `OrderController`, `InventoryController`) |
+| `dao` / `dao.jdbc` | DAO interfaces and their PostgreSQL implementations; `DatabaseManager` is the **Singleton** |
+| `payment` | `PaymentMethod` interface plus Cash, Card, Online Banking |
+| `exception` | Custom checked exceptions |
+| `util` | Validation, password hashing, formatting, config |
 
-## 🚀 How to Run
+Patterns: **MVC**, **Singleton** (`DatabaseManager`), **DAO**. Controllers depend on the DAO interfaces; the concrete
+classes are chosen in one place (`AppContext`).
 
-1. Open the project in **NetBeans IDE**.
-2. Run the `Main` class or the GUI entry point.
-3. Log in using default credentials (set in code).
-4. Start shopping!
-
----
-
-## 🎯 Tech Stack
-
-- Java (Swing for GUI)
-- NetBeans IDE
-- Basic object-oriented design
-
----
-
-## 📌 Notes
-
-- This is a beginner-friendly simulation project — no backend, database, or external libraries required.
-- Designed for academic use or skill-building.
-
----
-
-## 🖼️ Screenshots
-
-**1) The login/signup screen**   
-<img src="screenshots/Screenshot1.png" width="350" height="331"/><br/>  
-<br/>
-
-**2) Main menu to browse for items**  
-<img src="screenshots/Screenshot2.png" width="350" height="331"/><br/>  
-<br/>
-
-**3) Cart page**    
-<img src="screenshots/Screenshot3.png" width="350" height="331"/><br/>  
-<br/>
-
-**4) Checkout page**    
-<img src="screenshots/Screenshot4.png" width="350" height="331"/><br/>  
-<br/>
-
-**5) Receipt after payment successful**    
-<img src="screenshots/Screenshot5.png" width="350" height="331"/><br/>  
-<br/>
-
----
-
-## ✅ Future Improvements
-
-🔐 Add real user account management with encrypted passwords  
-📊 Implement admin panel to manage inventory and view sales  
-📦 Connect to a database to store items and transactions  
-🖼️ Add product images and dynamic item loading from files or database  
-
----
-
-## 🧑‍💻 Author
-
-Mikail — Diploma in Software Engineering, German Malaysian Institute
-
----
+## Author
+Mikail - Diploma in Software Engineering, German Malaysian Institute

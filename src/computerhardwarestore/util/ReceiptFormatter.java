@@ -14,7 +14,7 @@ public final class ReceiptFormatter {
         String line = "=".repeat(WIDTH);
         String thin = "-".repeat(WIDTH);
         sb.append(line).append('\n');
-        sb.append(center("CODEFUSION - COMPUTER & HARDWARE STORE")).append('\n');
+        sb.append(center("COMPUTER & HARDWARE STORE")).append('\n');
         sb.append(center("OFFICIAL RECEIPT")).append('\n');
         sb.append(line).append('\n');
         sb.append(String.format("Order ID : #%06d%n", o.getId()));

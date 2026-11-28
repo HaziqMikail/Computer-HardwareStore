@@ -3,6 +3,7 @@ package computerhardwarestore.dao.jdbc;
 import computerhardwarestore.dao.OrderDao;
 import computerhardwarestore.exception.DataAccessException;
 import computerhardwarestore.exception.OutOfStockException;
+import computerhardwarestore.model.DashboardStats;
 import computerhardwarestore.model.Order;
 import computerhardwarestore.model.OrderItem;
 import java.sql.Connection;
@@ -102,6 +103,49 @@ public class JdbcOrderDao implements OrderDao {
     @Override
     public List<Order> findAll() throws DataAccessException {
         return query("", null);
+    }
+
+    @Override
+    public DashboardStats dashboardStats(int lowStockLevel, int recentLimit) throws DataAccessException {
+        try (Connection c = db.getConnection()) {
+            java.math.BigDecimal revenue;
+            int orders;
+            int products;
+            int customers;
+            try (Statement st = c.createStatement()) {
+                try (ResultSet rs = st.executeQuery("SELECT COALESCE(SUM(total), 0), COUNT(*) FROM orders")) {
+                    rs.next();
+                    revenue = rs.getBigDecimal(1);
+                    orders = rs.getInt(2);
+                }
+                try (ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM products")) {
+                    rs.next();
+                    products = rs.getInt(1);
+                }
+                try (ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM users WHERE role = 'CUSTOMER'")) {
+                    rs.next();
+                    customers = rs.getInt(1);
+                }
+            }
+            List<computerhardwarestore.model.Product> low = new ArrayList<>();
+            try (PreparedStatement ps = c.prepareStatement(
+                    "SELECT id, name, category, price, stock, specs, image_path FROM products "
+                            + "WHERE stock <= ? ORDER BY stock, name LIMIT 8")) {
+                ps.setInt(1, lowStockLevel);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        low.add(new computerhardwarestore.model.Product(rs.getInt("id"), rs.getString("name"),
+                                rs.getString("category"), rs.getBigDecimal("price"), rs.getInt("stock"),
+                                rs.getString("specs"), rs.getString("image_path")));
+                    }
+                }
+            }
+            List<Order> all = query("", null);
+            List<Order> recent = all.subList(0, Math.min(recentLimit, all.size()));
+            return new DashboardStats(revenue, orders, products, customers, low, new ArrayList<>(recent));
+        } catch (SQLException e) {
+            throw new DataAccessException(DatabaseManager.describe(e), e);
+        }
     }
 
     private List<Order> query(String where, Integer userId) throws DataAccessException {

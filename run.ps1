@@ -1,19 +1,44 @@
-$javaExe = $null
+# Compiles the project into .\out and starts the store.
+# Usage:  .\run.ps1            build and run
+#         .\run.ps1 -BuildOnly build only (no window)
+param([switch]$BuildOnly)
 
-if (Get-Command java -ErrorAction SilentlyContinue) {
-    $javaExe = "java"
-} elseif (Test-Path "C:\Program Files\Android\Android Studio\jbr\bin\java.exe") {
-    $javaExe = "C:\Program Files\Android\Android Studio\jbr\bin\java.exe"
-} elseif ($env:JAVA_HOME -and (Test-Path "$env:JAVA_HOME\bin\java.exe")) {
-    $javaExe = "$env:JAVA_HOME\bin\java.exe"
+Set-Location $PSScriptRoot
+
+function Find-JavaTool($name) {
+    if (Get-Command $name -ErrorAction SilentlyContinue) { return $name }
+    $candidates = @(
+        "C:\Program Files\Android\Android Studio\jbr\bin\$name.exe",
+        "$env:JAVA_HOME\bin\$name.exe"
+    )
+    foreach ($c in $candidates) { if ($c -and (Test-Path $c)) { return $c } }
+    return $null
 }
 
-if (-not $javaExe) {
-    Write-Error "Java executable not found. Please install Java or add it to PATH."
+$javac = Find-JavaTool "javac"
+$java = Find-JavaTool "java"
+if (-not $javac -or -not $java) {
+    Write-Error "Java (JDK) not found. Install a JDK or add it to PATH."
     exit 1
 }
 
-$jarPath = Join-Path $PSScriptRoot "dist\ComputerHardwareStore.jar"
-Write-Host "Starting Computer Hardware Store..."
-Start-Process $javaExe -ArgumentList "-jar", "`"$jarPath`""
+if (-not (Test-Path "db.properties")) {
+    Write-Warning "db.properties not found - using defaults (localhost:5432, user postgres). Copy db.properties.example to db.properties and set your password."
+}
 
+$libs = "lib\postgresql-42.7.4.jar;lib\flatlaf-3.5.4.jar"
+$sources = Get-ChildItem -Path src -Recurse -Filter *.java | ForEach-Object { $_.FullName }
+
+if (Test-Path out) { Remove-Item out -Recurse -Force }
+New-Item -ItemType Directory -Path out | Out-Null
+
+Write-Host "Compiling..."
+& $javac -encoding UTF-8 -cp $libs -d out $sources
+if ($LASTEXITCODE -ne 0) { Write-Error "Compilation failed."; exit 1 }
+
+Copy-Item -Path src\images -Destination out\images -Recurse
+Write-Host "Build OK."
+if ($BuildOnly) { exit 0 }
+
+Write-Host "Starting Computer & Hardware Store..."
+& $java -cp "out;$libs" computerhardwarestore.ComputerHardwareStore

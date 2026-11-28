@@ -26,9 +26,6 @@ public final class PaymentField {
         return new PaymentField(key, label, null, maxLength, true);
     }
 
-    public static PaymentField text(String key, String label, int maxLength) {
-        return new PaymentField(key, label, null, maxLength, false);
-    }
 
     public boolean isChoice() { return options != null; }
 }

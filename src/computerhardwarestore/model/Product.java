@@ -21,6 +21,12 @@ public class Product {
         this.imagePath = imagePath;
     }
 
+    /** Stock at or below this (but above 0) counts as "low stock". */
+    public static final int LOW_STOCK = 5;
+
+    public boolean isOutOfStock() { return stock <= 0; }
+    public boolean isLowStock() { return stock > 0 && stock <= LOW_STOCK; }
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     public String getName() { return name; }

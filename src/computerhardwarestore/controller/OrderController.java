@@ -54,4 +54,8 @@ public class OrderController {
     public List<Order> allOrders() throws AppException {
         return orderDao.findAll();
     }
+
+    public computerhardwarestore.model.DashboardStats dashboard() throws AppException {
+        return orderDao.dashboardStats(computerhardwarestore.model.Product.LOW_STOCK, 6);
+    }
 }

@@ -1,4 +1,4 @@
-# 💻 CodeFusion - Computer & Hardware Store (Java Swing + PostgreSQL)
+# 💻 Computer & Hardware - Computer & Hardware Store (Java Swing + PostgreSQL)
 
 A desktop store application. Customers browse products, manage a cart, pay (**simulated - no real payment**) and get a
 receipt. Administrators manage inventory and view every order. Data is stored in PostgreSQL.
@@ -9,7 +9,7 @@ receipt. Administrators manage inventory and view every order. Data is stored in
 - **Cart:** quantity validation, stock checks, change quantity, remove.
 - **Payment (dummy):** Cash, Card, Online Banking. Each is a `PaymentMethod` class; add a new one by implementing the
   interface and registering it in `PaymentRegistry`. Only the format of details is checked; nothing is charged.
-- **Receipts:** built from the saved order (order ID, date/time, payment method), can be saved to a file or printed.
+- **Receipts:** built from the saved order (order ID, date/time, payment method), shown as a clean summary and can be saved to a text file.
 - **Inventory (admin):** add, edit, delete products, change price/stock, choose an image. Stock drops automatically
   after each purchase.
 - **Orders:** customers see their own history; admins see all orders with total revenue.
@@ -47,19 +47,19 @@ Query Tool, and how to open the admin page.
 
 ## How to run
 - **NetBeans:** open the project and press Run. Main class: `computerhardwarestore.ComputerHardwareStore`.
-  The PostgreSQL driver is in `lib/postgresql-42.7.4.jar` and is already on the classpath.
+  The libraries in `lib/` (PostgreSQL driver and FlatLaf for the modern look) are already on the classpath.
 - **Command line:**
   ```
-  javac -encoding UTF-8 -cp lib/postgresql-42.7.4.jar -d out $(find src -name "*.java")
+  javac -encoding UTF-8 -cp "lib/postgresql-42.7.4.jar:lib/flatlaf-3.5.4.jar" -d out $(find src -name "*.java")
   cp -r src/images out/images
-  java -cp "out:lib/postgresql-42.7.4.jar" computerhardwarestore.ComputerHardwareStore   (use ; instead of : on Windows)
+  java -cp "out:lib/postgresql-42.7.4.jar:lib/flatlaf-3.5.4.jar" computerhardwarestore.ComputerHardwareStore   (use ; instead of : on Windows)
   ```
 
 ## Architecture
 | Package | Role |
 |---|---|
 | `model` | Data classes: `User`, `Product`, `Cart`, `Order`, ... |
-| `view` | Swing screens only (`MainFrame`, `ShopPanel`, `CartPanel`, `CheckoutPanel`, `InventoryPanel`, ...) |
+| `view` | Swing UI. `AppWindow` shows login, then a role shell: `shell/CustomerShell` (top bar) or `shell/AdminShell` (sidebar). Pages grouped by module: `auth`, `shop`, `cart` (cart + checkout), `order` (history + receipt), `admin` (dashboard + inventory), `common` (theme, cards, buttons, toast) |
 | `controller` | Application rules (`AuthController`, `CartController`, `OrderController`, `InventoryController`) |
 | `dao` / `dao.jdbc` | DAO interfaces and their PostgreSQL implementations; `DatabaseManager` is the **Singleton** |
 | `payment` | `PaymentMethod` interface plus Cash, Card, Online Banking |

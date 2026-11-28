@@ -29,7 +29,7 @@ public class CartController {
         if (already > 0) {
             cart.find(live.getId()).get().setQuantity(already + qty);
         } else {
-            cart.add(new CartItem(live.getId(), live.getName(), live.getPrice(), qty));
+            cart.add(new CartItem(live.getId(), live.getName(), live.getPrice(), qty, live.getImagePath()));
         }
     }
 
@@ -46,6 +46,35 @@ public class CartController {
     public void remove(int productId) { cart.remove(productId); }
 
     public void clear() { cart.clear(); }
+
+    /**
+     * Re-reads live prices and stock for every cart line and fixes the cart. Returns one message per change
+     * (price changed, quantity reduced to the available stock, product no longer available).
+     */
+    public java.util.List<String> refreshPrices() throws DataAccessException {
+        java.util.List<String> changes = new java.util.ArrayList<>();
+        for (CartItem item : new java.util.ArrayList<>(cart.getItems())) {
+            java.util.Optional<Product> found = productDao.findById(item.getProductId());
+            if (found.isEmpty() || found.get().getStock() <= 0) {
+                cart.remove(item.getProductId());
+                changes.add("\"" + item.getName() + "\" is no longer available and was removed from your cart.");
+                continue;
+            }
+            Product live = found.get();
+            if (live.getPrice().compareTo(item.getUnitPrice()) != 0) {
+                changes.add("The price of \"" + item.getName() + "\" changed from "
+                        + computerhardwarestore.util.Formats.money(item.getUnitPrice()) + " to "
+                        + computerhardwarestore.util.Formats.money(live.getPrice()) + ".");
+                item.setUnitPrice(live.getPrice());
+            }
+            if (item.getQuantity() > live.getStock()) {
+                changes.add("Only " + live.getStock() + " of \"" + item.getName()
+                        + "\" are left, so your quantity was reduced.");
+                item.setQuantity(live.getStock());
+            }
+        }
+        return changes;
+    }
 
     private Product load(int productId) throws DataAccessException, OutOfStockException {
         return productDao.findById(productId)

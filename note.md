@@ -1,4 +1,4 @@
-# CodeFusion - Notes
+# Computer & Hardware Store - Notes
 
 Quick reference for running, using and maintaining the project.
 
@@ -19,11 +19,12 @@ There is no separate admin URL or button. The **role decides the screens**:
 2. On the login screen type `admin` / `Admin@123` and press Login.
 3. You land on **Inventory Management** straight away.
 
-Admin menu bar:
-- **Admin > Inventory** - add, edit, delete products.
-- **Admin > All orders & sales** - every customer's orders plus total revenue. Double-click an order (or select it and click *View receipt*) to open its receipt.
-- **View > Shop preview** - see the shop as customers see it (admins have no cart).
-- **File > Log out / Exit**.
+Admin sidebar (left):
+- **Dashboard** - revenue, order count, product count, customer count, recent orders and low-stock list. Tiles and "View all" / "Manage" links jump to the matching page.
+- **Inventory** - add, edit, delete products; stock is coloured green / amber (5 or fewer) / red (0).
+- **Orders & sales** - every customer's orders plus total revenue. Click *View receipt* at the end of an order row to open its receipt.
+- **Shop preview** - see the shop as customers see it (admins have no cart).
+- **Log out** is at the bottom of the sidebar.
 
 ### Make another user an admin
 Register them normally, then in pgAdmin open **Query Tool** on the `hardwarestore` database and run:
@@ -52,10 +53,10 @@ Register  ->  Login  ->  Shop (search / filter by category)
    ->  Add to Cart (quantity checked against live stock)
    ->  Cart (change quantity / remove)
    ->  Checkout (choose Cash / Card / Online Banking, pay - simulated)
-   ->  Receipt window (Save as file / Print)  ->  My Orders (history)
+   ->  Receipt window (Save as file)  ->  My Orders (history)
 ```
-- **Shop** menu: *Browse products*, *Cart (n)*, *My orders*.
-- The header shows the cart count. Double-click any past order to reopen its receipt.
+- Top bar: *Shop*, *Cart (n)*, *My orders*, and *Log out*. A step bar shows Cart > Payment > Done.
+- The header shows the cart count. Click *View receipt* next to any past order total to reopen its receipt.
 - Cart is kept in memory only; it is emptied on logout or after a successful payment.
 
 ### Admin
@@ -100,13 +101,13 @@ No money moves anywhere. Details are only checked for format (card: 16 digits, e
 ```
 src/computerhardwarestore/
   model/       data classes
-  view/        Swing screens
+  view/        Swing UI: AppWindow, shell/ (customer + admin frames), one sub-package per module (auth, shop, cart, order, admin), common/ (theme + shared components)
   controller/  business rules
   dao/, dao/jdbc/  database access (interfaces + PostgreSQL)
   payment/     payment methods (add a new one here)
   exception/   custom exceptions
   util/        validation, hashing, formatting
-lib/           PostgreSQL JDBC driver
+lib/           PostgreSQL JDBC driver + FlatLaf (modern look)
 db.properties  your DB settings (not committed)
 ```
 

@@ -2,6 +2,7 @@ package computerhardwarestore.dao;
 
 import computerhardwarestore.exception.DataAccessException;
 import computerhardwarestore.exception.OutOfStockException;
+import computerhardwarestore.model.DashboardStats;
 import computerhardwarestore.model.Order;
 import java.util.List;
 
@@ -15,4 +16,7 @@ public interface OrderDao {
     List<Order> findByUser(int userId) throws DataAccessException;
 
     List<Order> findAll() throws DataAccessException;
+
+    /** Dashboard figures: revenue, counts, products at or below the low-stock level, and the newest orders. */
+    DashboardStats dashboardStats(int lowStockLevel, int recentLimit) throws DataAccessException;
 }

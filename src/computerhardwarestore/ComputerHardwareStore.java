@@ -2,8 +2,8 @@ package computerhardwarestore;
 
 import computerhardwarestore.controller.AppContext;
 import computerhardwarestore.dao.jdbc.DatabaseManager;
-import computerhardwarestore.view.MainFrame;
-import computerhardwarestore.view.Theme;
+import computerhardwarestore.view.AppWindow;
+import computerhardwarestore.view.common.Theme;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
@@ -18,11 +18,11 @@ public class ComputerHardwareStore {
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null,
                         e.getMessage() + "\n\nSee README.md (Database setup) for how to configure PostgreSQL.",
-                        "Cannot start CodeFusion", JOptionPane.ERROR_MESSAGE);
+                        "Cannot start the store", JOptionPane.ERROR_MESSAGE);
                 System.exit(1);
                 return;
             }
-            new MainFrame(new AppContext()).setVisible(true);
+            new AppWindow(new AppContext()).setVisible(true);
         });
     }
 }

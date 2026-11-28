@@ -5,3 +5,4 @@ nbproject/private/
 # Local database credentials and admin-uploaded images
 db.properties
 product-images/
+out/
